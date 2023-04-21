@@ -1,0 +1,10 @@
+uint8 Footid
+geometry_msgs/Point32 nominalFoothold
+
+---
+
+# geometry_msgs/PolygonStamped convexPolygon
+float32[16] CoeffA
+float32[16] Coeffb
+float32[16] Coeff_y
+float32 average_Height

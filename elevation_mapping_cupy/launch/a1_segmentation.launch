@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+
+  <!-- Launch elevation mapping node. -->
+  <node pkg="elevation_mapping_cupy" type="elevation_mapping_node" name="elevation_mapping" output="screen">
+    <rosparam command="load" file="$(find elevation_mapping_cupy)/config/parameters.yaml" />
+    <rosparam>
+    <!-- 现在其实只用前面那个相机也可以做到build local map了，但是暂时还是先加上 -->
+
+
+      <!-- initialize_frame_id: ['base'] 之前是因为加了这两个把原来默认初始化foot周围的map给override了
+      initialize_tf_offset: [0.0] -->
+    </rosparam>
+  </node>
+
+  <!-- Launch the plane decomposition node. -->
+  <include file="$(find convex_plane_decomposition_ros)/launch/Quad_convex_plane_decomposition.launch"/>
+
+  <!-- <include file="$(find grid_map_demos)/launch/sdf_demo_quad.launch"/> -->
+
+</launch>

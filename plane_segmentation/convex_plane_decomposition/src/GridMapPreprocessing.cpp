@@ -12,9 +12,9 @@ namespace convex_plane_decomposition {
 GridMapPreprocessing::GridMapPreprocessing(const PreprocessingParameters& parameters) : parameters_(parameters) {}
 
 void GridMapPreprocessing::preprocess(grid_map::GridMap& gridMap, const std::string& layer) const {
-  inpaint(gridMap, layer);
-  denoise(gridMap, layer);
-  changeResolution(gridMap, layer);
+  inpaint(gridMap, layer);  //! Inpainting filter (extrapolate nan values from surrounding data).
+  denoise(gridMap, layer);  //!  Smoothing and outlier rejection filters.
+  changeResolution(gridMap, layer); //! change resolution to 0.04
 }
 
 void GridMapPreprocessing::denoise(grid_map::GridMap& gridMap, const std::string& layer) const {
@@ -25,14 +25,16 @@ void GridMapPreprocessing::denoise(grid_map::GridMap& gridMap, const std::string
 void GridMapPreprocessing::changeResolution(grid_map::GridMap& gridMap, const std::string& layer) const {
   bool hasSameResolution = std::abs(gridMap.getResolution() - parameters_.resolution) < 1e-6;
 
-  if (parameters_.resolution > 0.0 && !hasSameResolution) {
+  if (parameters_.resolution > 0.0 && !hasSameResolution) 
+  {
     grid_map::inpainting::resample(gridMap, layer, parameters_.resolution);
   }
 }
 
-void GridMapPreprocessing::inpaint(grid_map::GridMap& gridMap, const std::string& layer) const {
+void GridMapPreprocessing::inpaint(grid_map::GridMap& gridMap, const std::string& layer) const 
+{
   const std::string& layerOut = "tmp";
-  grid_map::inpainting::minValues(gridMap, layer, layerOut);
+  grid_map::inpainting::minValues(gridMap, layer, layerOut);  
 
   gridMap.get(layer) = std::move(gridMap.get(layerOut));
   gridMap.erase(layerOut);

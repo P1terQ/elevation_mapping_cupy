@@ -19,7 +19,7 @@ ConvexPlaneExtractionROS::ConvexPlaneExtractionROS(ros::NodeHandle& nodeHandle) 
 
   if (parametersLoaded) 
   {
-    //'/elevation_mapping/elevation_map_raw'
+    //! /elevation_mapping/elevation_map_filter
     elevationMapSubscriber_ = nodeHandle.subscribe(elevationMapTopic_, 1, &ConvexPlaneExtractionROS::callback, this); 
 
     //! grid_map
@@ -105,9 +105,9 @@ void ConvexPlaneExtractionROS::callback(const grid_map_msgs::GridMap& message)
   // Convert message to map.
   grid_map::GridMap messageMap;
   std::vector<std::string> layers{elevationLayer_};
-  grid_map::GridMapRosConverter::fromMessage(message, messageMap, layers, false, false);  // convert message to gridmap
+  grid_map::GridMapRosConverter::fromMessage(message, messageMap, layers, false, false);  //! convert message to gridmap
 
-  if (!containsFiniteValue(messageMap.get(elevationLayer_))) 
+  if (!containsFiniteValue(messageMap.get(elevationLayer_))) //! check smooth layer in /elevation_mapping/elevation_map_filter topic if exist
   {
     ROS_WARN("[ConvexPlaneExtractionROS] map does not contain any values");
     callbackTimer_.endTimer();
@@ -115,14 +115,14 @@ void ConvexPlaneExtractionROS::callback(const grid_map_msgs::GridMap& message)
   }
 
   // Transform map if necessary
-  if (targetFrameId_ != messageMap.getFrameId()) 
+  if (targetFrameId_ != messageMap.getFrameId())  //! target frame: odom
   {
     std::string errorMsg;
     ros::Time timeStamp = ros::Time(0);  // Use Time(0) to get the latest transform.
     if (tfBuffer_.canTransform(targetFrameId_, messageMap.getFrameId(), timeStamp, &errorMsg)) 
     {
       const auto transform = getTransformToTargetFrame(messageMap.getFrameId(), timeStamp);
-      messageMap = grid_map::GridMapCvProcessing::getTransformedMap(std::move(messageMap), transform, elevationLayer_, targetFrameId_);
+      messageMap = grid_map::GridMapCvProcessing::getTransformedMap(std::move(messageMap), transform, elevationLayer_, targetFrameId_); //! transform elevation map with respect to /odom
     } 
     else 
     {
@@ -134,19 +134,19 @@ void ConvexPlaneExtractionROS::callback(const grid_map_msgs::GridMap& message)
 
   // Extract submap
   bool success;
-  const grid_map::Position submapPosition = [&]() 
+  const grid_map::Position submapPosition = [&]()   //! get centerPosition of the gridmap
   {
     // The map center might be between cells. Taking the submap there can result in changing submap dimensions.
     // project map center to an index and index to center s.t. we get the location of a cell.
     grid_map::Index centerIndex;
     grid_map::Position centerPosition;
-    messageMap.getIndex(messageMap.getPosition(), centerIndex);
-    messageMap.getPosition(centerIndex, centerPosition);
-    return centerPosition;
+    messageMap.getIndex(messageMap.getPosition(), centerIndex); // center pos index
+    messageMap.getPosition(centerIndex, centerPosition);  
+    return centerPosition;  
   }();
 
   //! get elevation_submap from gridmap layers
-  grid_map::GridMap elevationMap = messageMap.getSubmap(submapPosition, Eigen::Array2d(subMapLength_, subMapWidth_), success);
+  grid_map::GridMap elevationMap = messageMap.getSubmap(submapPosition, Eigen::Array2d(subMapLength_, subMapWidth_), success);  //! get 5*5 submap from the complete grid_map for further computation 
   
   if (!success) 
   {
@@ -154,7 +154,7 @@ void ConvexPlaneExtractionROS::callback(const grid_map_msgs::GridMap& message)
     callbackTimer_.endTimer();
     return;
   }
-  const grid_map::Matrix elevationRaw = elevationMap.get(elevationLayer_);
+  const grid_map::Matrix elevationRaw = elevationMap.get(elevationLayer_);  //! get smooth layer from grid_map(elevation_mapping/elevation_map_filter)
 
   //! Run pipeline. preprocess&extract&postprocess the raw elevation map
   planeDecompositionPipeline_->update(std::move(elevationMap), elevationLayer_);
@@ -180,6 +180,7 @@ void ConvexPlaneExtractionROS::callback(const grid_map_msgs::GridMap& message)
   // planarTerrain.gridMap.getIndex(pos1,index1);
   // planarTerrain.gridMap.at("smooth_planar", index1) = 0.2;
 
+  //! filtered_map就是比原来的gridmap多了elevation_raw和segmentaion
   grid_map_msgs::GridMap outputMessage;
   grid_map::GridMapRosConverter::toMessage(planarTerrain.gridMap, outputMessage);
   filteredmapPublisher_.publish(outputMessage); //! Publish filter map

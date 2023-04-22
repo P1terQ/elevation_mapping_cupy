@@ -8,7 +8,7 @@ sliding_window_plane_extractor:
   planarity_opening_filter: 1                           # [#] Apply opening filter (erosion -> dilation) to planarity detection by this amount of pixels DEFAULT:0
   plane_inclination_threshold_degrees: 10.0             # [deg] Maximum allowed angle between the surface normal and the world-z direction for a patch DEFAULT:30
   local_plane_inclination_threshold_degrees: 15.0       # [deg] Maximum allowed angle between the surface normal and the world-z direction for a cell DEFAULT:35
-  plane_patch_error_threshold: 0.02                     # [m] The allowed root-mean-squared deviation from the plane fitted to the sliding window.
+  plane_patch_error_threshold: 0.1                    # [m] The allowed root-mean-squared deviation from the plane fitted to the sliding window. DEFAULT:0.02
   min_number_points_per_label: 4                        # [#] Labels with less points assigned to them are discarded
   connectivity: 4                                       # Label kernel connectivity. 4 or 8 (cross or box)
   include_ransac_refinement: true                       # Enable RANSAC refinement if the plane is not globally fitting to the assigned points.
@@ -31,4 +31,4 @@ postprocessing:
   nonplanar_horizontal_offset: 1        # Added offset in XY direction for non-planar cells of the map. In number of pixels.
   smoothing_dilation_size: 0.2          # Half the width of the dilation used before the smooth layer [m] default 0.2
   smoothing_box_kernel_size: 0.1        # Half the width of the box kernel used for the smooth layer [m]
-  smoothing_gauss_kernel_size: 0.05     # Half the width of the Gaussian kernel used for the smooth layer [m]
+  smoothing_gauss_kernel_size: 0.2     # Half the width of the Gaussian kernel used for the smooth layer [m] default 0.05

@@ -43,4 +43,5 @@ class SmoothFilter(PluginBase):
 
         hs1 = ndimage.uniform_filter(h, size=3) # default size = 3 
         hs1 = ndimage.uniform_filter(hs1, size=3) # default size = 3
+        # hs1 = ndimage.uniform_filter(hs1, size=3)
         return hs1

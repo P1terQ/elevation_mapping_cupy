@@ -34,7 +34,7 @@ cleanup_step: 0.1                               # subtitute this value from vali
 cleanup_cos_thresh: 0.1                         # subtitute this value from validity layer at visibiltiy cleanup.
 
 safe_thresh: 0.5                                # if traversability is smaller, it is counted as unsafe cell. default:0.7
-safe_min_thresh: 0.4                            # polygon is unsafe if there exists lower traversability than this.
+safe_min_thresh: 0.3                            # polygon is unsafe if there exists lower traversability than this. default: 0.4
 max_unsafe_n: 10                                # if the number of cells under safe_thresh exceeds this value, polygon is unsafe. default 10
 
 overlap_clear_range_xy: 4.0                     # xy range [m] for clearing overlapped area. this defines the valid area for overlap clearance. (used for multi floor setting) default 4.0
@@ -66,8 +66,8 @@ plugin_config_file: '$(rospack find elevation_mapping_cupy)/config/plugin_config
 #### Subscribers ########
 
 pointcloud_topics: [
-                    # '/d435_Forward/depth/color/points',
-                    '/d435_Down/depth/color/points',
+                    '/d435_Forward/depth/color/points',
+                    # '/d435_Down/depth/color/points',
                     # '/d435_Left/depth/color/points',
                     # '/d435_Right/depth/color/points',
                     # '/d435_Back/depth/color/points'

@@ -4,12 +4,13 @@
 
 namespace convex_plane_decomposition {
 
-geometry_msgs::PolygonStamped to3dRosPolygon(const CgalPolygon2d& polygon, const Eigen::Isometry3d& transformPlaneToWorld,
-                                             const std_msgs::Header& header) {
+//! add color
+geometry_msgs::PolygonStamped to3dRosPolygon(const CgalPolygon2d& polygon, const Eigen::Isometry3d& transformPlaneToWorld, const std_msgs::Header& header) {
   geometry_msgs::PolygonStamped polygon3d;
   polygon3d.header = header;
   polygon3d.polygon.points.reserve(polygon.size());
-  for (const auto& point : polygon) {
+  for (const auto& point : polygon) 
+  {
     geometry_msgs::Point32 point_ros;
     const auto pointInWorld = positionInWorldFrameFromPosition2dInPlane(point, transformPlaneToWorld);
     point_ros.x = static_cast<float>(pointInWorld.x());
@@ -20,29 +21,79 @@ geometry_msgs::PolygonStamped to3dRosPolygon(const CgalPolygon2d& polygon, const
   return polygon3d;
 }
 
+// visualization_msgs::Marker toColored3dRosPolygon(const CgalPolygon2d& polygon, const Eigen::Isometry3d& transformPlaneToWorld,
+//                                              const std_msgs::Header& header)
+// {
+//   visualization_msgs::Marker Colored_polygon3d;
+
+
+// }
+
+
 std::vector<geometry_msgs::PolygonStamped> to3dRosPolygon(const CgalPolygonWithHoles2d& polygonWithHoles,
-                                                          const Eigen::Isometry3d& transformPlaneToWorld, const std_msgs::Header& header) {
+                                                          const Eigen::Isometry3d& transformPlaneToWorld, const std_msgs::Header& header) 
+{
   std::vector<geometry_msgs::PolygonStamped> polygons;
 
   polygons.reserve(polygonWithHoles.number_of_holes() + 1);
   polygons.emplace_back(to3dRosPolygon(polygonWithHoles.outer_boundary(), transformPlaneToWorld, header));
 
-  for (const auto& hole : polygonWithHoles.holes()) {
+  for (const auto& hole : polygonWithHoles.holes()) 
+  {
     polygons.emplace_back(to3dRosPolygon(hole, transformPlaneToWorld, header));
   }
   return polygons;
 }
 
-namespace {  // Helper functions for convertBoundariesToRosMarkers and convertInsetsToRosMarkers
-std_msgs::ColorRGBA getColor(int id, float alpha = 1.0) {
+visualization_msgs::Marker to3dRosMarker_(const CgalPolygon2d& polygon, 
+                                         const Eigen::Isometry3d& transformPlaneToWorld,
+                                         const std_msgs::Header& header, 
+                                         const std_msgs::ColorRGBA& color, 
+                                         int id, 
+                                         double lineWidth) 
+{
+  visualization_msgs::Marker line;
+  line.id = id;
+  line.header = header;
+  line.type = visualization_msgs::Marker::LINE_STRIP;
+  line.scale.x = lineWidth;
+  line.color = color;
+  if (!polygon.is_empty()) {
+    line.points.reserve(polygon.size() + 1);
+    for (const auto& point : polygon) {
+      const auto pointInWorld = positionInWorldFrameFromPosition2dInPlane(point, transformPlaneToWorld);
+      geometry_msgs::Point point_ros;
+      point_ros.x = pointInWorld.x();
+      point_ros.y = pointInWorld.y();
+      point_ros.z = pointInWorld.z();
+      line.points.push_back(point_ros);
+    }
+    // repeat the first point to close to polygon
+    const auto pointInWorld = positionInWorldFrameFromPosition2dInPlane(polygon.vertex(0), transformPlaneToWorld);
+    geometry_msgs::Point point_ros;
+    point_ros.x = pointInWorld.x();
+    point_ros.y = pointInWorld.y();
+    point_ros.z = pointInWorld.z();
+    line.points.push_back(point_ros);
+  }
+  line.pose.orientation.w = 1.0;
+  line.pose.orientation.x = 0.0;
+  line.pose.orientation.y = 0.0;
+  line.pose.orientation.z = 0.0;
+  return line;
+}
+
+std_msgs::ColorRGBA getColor_(int id, float alpha) 
+{
   constexpr int numColors = 7;
   using RGB = std::array<float, 3>;
   // clang-format off
-  static const std::array<std::array<float, 3>, numColors> colorMap{
-    RGB{0.0000F, 0.4470F, 0.7410F},
-    RGB{0.8500F, 0.3250F, 0.0980F},
-    RGB{0.9290F, 0.6940F, 0.1250F},
-    RGB{0.4940F, 0.1840F, 0.5560F},
+  static const std::array<std::array<float, 3>, numColors> colorMap
+  {  
+    RGB{0.0000F, 0.4470F, 0.7410F}, // 蓝色
+    RGB{0.8500F, 0.3250F, 0.0980F}, // 橙色
+    RGB{0.9290F, 0.6940F, 0.1250F}, // 黄色
+    RGB{0.4940F, 0.1840F, 0.5560F}, // 紫色
     RGB{0.4660F, 0.6740F, 0.1880F},
     RGB{0.6350F, 0.0780F, 0.1840F},
     RGB{0.2500F, 0.2500F, 0.2500F}
@@ -58,8 +109,41 @@ std_msgs::ColorRGBA getColor(int id, float alpha = 1.0) {
   return colorMsg;
 }
 
-visualization_msgs::Marker to3dRosMarker(const CgalPolygon2d& polygon, const Eigen::Isometry3d& transformPlaneToWorld,
-                                         const std_msgs::Header& header, const std_msgs::ColorRGBA& color, int id, double lineWidth) {
+namespace {  // Helper functions for convertBoundariesToRosMarkers and convertInsetsToRosMarkers
+
+std_msgs::ColorRGBA getColor(int id, float alpha = 1.0) 
+{
+  constexpr int numColors = 7;
+  using RGB = std::array<float, 3>;
+  // clang-format off
+  static const std::array<std::array<float, 3>, numColors> colorMap
+  {  
+    RGB{0.0000F, 0.4470F, 0.7410F}, // 蓝色
+    RGB{0.8500F, 0.3250F, 0.0980F}, // 橙色
+    RGB{0.9290F, 0.6940F, 0.1250F}, // 黄色
+    RGB{0.4940F, 0.1840F, 0.5560F}, // 紫色
+    RGB{0.4660F, 0.6740F, 0.1880F},
+    RGB{0.6350F, 0.0780F, 0.1840F},
+    RGB{0.2500F, 0.2500F, 0.2500F}
+  };
+  // clang-format on
+
+  std_msgs::ColorRGBA colorMsg;
+  const auto& rgb = colorMap[id % numColors];
+  colorMsg.r = rgb[0];
+  colorMsg.g = rgb[1];
+  colorMsg.b = rgb[2];
+  colorMsg.a = alpha;
+  return colorMsg;
+}
+
+visualization_msgs::Marker to3dRosMarker(const CgalPolygon2d& polygon, 
+                                         const Eigen::Isometry3d& transformPlaneToWorld,
+                                         const std_msgs::Header& header, 
+                                         const std_msgs::ColorRGBA& color, 
+                                         int id, 
+                                         double lineWidth) 
+{
   visualization_msgs::Marker line;
   line.id = id;
   line.header = header;
@@ -92,8 +176,12 @@ visualization_msgs::Marker to3dRosMarker(const CgalPolygon2d& polygon, const Eig
 }
 
 visualization_msgs::MarkerArray to3dRosMarker(const CgalPolygonWithHoles2d& polygonWithHoles,
-                                              const Eigen::Isometry3d& transformPlaneToWorld, const std_msgs::Header& header,
-                                              const std_msgs::ColorRGBA& color, int id, double lineWidth) {
+                                              const Eigen::Isometry3d& transformPlaneToWorld, 
+                                              const std_msgs::Header& header,
+                                              const std_msgs::ColorRGBA& color, 
+                                              int id, 
+                                              double lineWidth) 
+{
   visualization_msgs::MarkerArray polygons;
 
   polygons.markers.reserve(polygonWithHoles.number_of_holes() + 1);
@@ -108,8 +196,11 @@ visualization_msgs::MarkerArray to3dRosMarker(const CgalPolygonWithHoles2d& poly
 }
 }  // namespace
 
-visualization_msgs::MarkerArray convertBoundariesToRosMarkers(const std::vector<PlanarRegion>& planarRegions, const std::string& frameId,
-                                                              grid_map::Time time, double lineWidth) {
+visualization_msgs::MarkerArray convertBoundariesToRosMarkers(const std::vector<PlanarRegion>& planarRegions, 
+                                                              const std::string& frameId,
+                                                              grid_map::Time time, 
+                                                              double lineWidth) 
+{
   std_msgs::Header header;
   header.stamp.fromNSec(time);
   header.frame_id = frameId;
@@ -121,7 +212,8 @@ visualization_msgs::MarkerArray convertBoundariesToRosMarkers(const std::vector<
   polygon_buffer.markers.reserve(planarRegions.size() + 1);  // lower bound
   polygon_buffer.markers.push_back(deleteMarker);
   int colorIdx = 0;
-  for (const auto& planarRegion : planarRegions) {
+  for (const auto& planarRegion : planarRegions) 
+  {
     const auto color = getColor(colorIdx++);
     int label = polygon_buffer.markers.size();
     auto boundaries =

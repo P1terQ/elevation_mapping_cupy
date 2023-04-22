@@ -22,7 +22,7 @@ void Postprocessing::postprocess(PlanarTerrain& planarTerrain, const std::string
   // post process planar regions
   addHeightOffset(planarTerrain.planarRegions);
 
-  // Add smooth layer for base reference
+  //! Add smooth layer for base reference
   addSmoothLayer(planarTerrain.gridMap, elevationData, planarityMask);
 
   // post process elevation map

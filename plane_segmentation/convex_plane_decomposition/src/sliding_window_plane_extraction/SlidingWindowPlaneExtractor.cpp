@@ -46,7 +46,9 @@ SlidingWindowPlaneExtractor::SlidingWindowPlaneExtractor(const SlidingWindowPlan
                                                          const ransac_plane_extractor::RansacPlaneExtractorParameters& ransacParameters)
     : parameters_(parameters), ransacParameters_(ransacParameters) {}
 
-void SlidingWindowPlaneExtractor::runExtraction(const grid_map::GridMap& map, const std::string& layer_height) {
+//! sliding window plane extractor
+void SlidingWindowPlaneExtractor::runExtraction(const grid_map::GridMap& map, const std::string& layer_height) 
+{
   // Extract basic map information
   map_ = &map;
   elevationLayer_ = layer_height;
@@ -61,14 +63,15 @@ void SlidingWindowPlaneExtractor::runExtraction(const grid_map::GridMap& map, co
   binaryImagePatch_ = cv::Mat(mapSize(0), mapSize(1), CV_8U, 0.0);  // Zero initialize to set untouched pixels to not planar;
   // Need a buffer of at least the linear size of the image. But no need to shrink if the buffer is already bigger.
   const int linearMapSize = mapSize(0) * mapSize(1);
-  if (surfaceNormals_.size() < linearMapSize) {
+  if (surfaceNormals_.size() < linearMapSize) 
+  {
     surfaceNormals_.reserve(linearMapSize);
     std::fill_n(surfaceNormals_.begin(), linearMapSize, Eigen::Vector3d::Zero());
   }
 
   // Run
   runSlidingWindowDetector();
-  runSegmentation();
+  runSegmentation();  // cv::connectedComponents
   extractPlaneParametersFromLabeledImage();
 
   // Get classification from segmentation to account for unassigned points.
@@ -104,7 +107,8 @@ std::pair<Eigen::Vector3d, double> SlidingWindowPlaneExtractor::computeNormalAnd
   }
 }
 
-bool SlidingWindowPlaneExtractor::isLocallyPlanar(const Eigen::Vector3d& localNormal, double meanSquaredError) const {
+bool SlidingWindowPlaneExtractor::isLocallyPlanar(const Eigen::Vector3d& localNormal, double meanSquaredError) const 
+{
   const double thresholdSquared = parameters_.plane_patch_error_threshold * parameters_.plane_patch_error_threshold;
 
   // Dotproduct between normal and Eigen::Vector3d::UnitZ();
@@ -112,12 +116,14 @@ bool SlidingWindowPlaneExtractor::isLocallyPlanar(const Eigen::Vector3d& localNo
   return (meanSquaredError < thresholdSquared && normalDotProduct > parameters_.local_plane_inclination_threshold);
 }
 
-void SlidingWindowPlaneExtractor::runSlidingWindowDetector() {
+void SlidingWindowPlaneExtractor::runSlidingWindowDetector() 
+{
   grid_map::SlidingWindowIterator window_iterator(*map_, elevationLayer_, grid_map::SlidingWindowIterator::EdgeHandling::EMPTY,
                                                   parameters_.kernel_size);
   const int kernelMiddle = (parameters_.kernel_size - 1) / 2;
 
-  for (; !window_iterator.isPastEnd(); ++window_iterator) {
+  for (; !window_iterator.isPastEnd(); ++window_iterator) 
+  {
     grid_map::Index index = *window_iterator;
     Eigen::MatrixXf window_data = window_iterator.getData();
     const auto middleValue = window_data(kernelMiddle, kernelMiddle);
@@ -135,7 +141,8 @@ void SlidingWindowPlaneExtractor::runSlidingWindowDetector() {
   }
 
   // opening filter
-  if (parameters_.planarity_opening_filter > 0) {
+  if (parameters_.planarity_opening_filter > 0) 
+  {
     const int openingKernelSize = 2 * parameters_.planarity_opening_filter + 1;
     const int openingKernelType = cv::MORPH_CROSS;
     const auto kernel_ = cv::getStructuringElement(openingKernelType, cv::Size(openingKernelSize, openingKernelSize));
@@ -144,12 +151,14 @@ void SlidingWindowPlaneExtractor::runSlidingWindowDetector() {
 }
 
 // Label cells according to which cell they belong to using connected component labeling.
-void SlidingWindowPlaneExtractor::runSegmentation() {
+void SlidingWindowPlaneExtractor::runSegmentation() 
+{
   int numberOfLabel = cv::connectedComponents(binaryImagePatch_, segmentedPlanesMap_.labeledImage, parameters_.connectivity, CV_32S);
   segmentedPlanesMap_.highestLabel = numberOfLabel - 1;  // Labels are [0, N-1]
 }
 
-void SlidingWindowPlaneExtractor::extractPlaneParametersFromLabeledImage() {
+void SlidingWindowPlaneExtractor::extractPlaneParametersFromLabeledImage() 
+{
   const int numberOfExtractedPlanesWithoutRefinement =
       segmentedPlanesMap_.highestLabel;  // Make local copy. The highestLabel is incremented inside the loop
 
@@ -157,24 +166,30 @@ void SlidingWindowPlaneExtractor::extractPlaneParametersFromLabeledImage() {
   pointsWithNormal_.reserve(segmentedPlanesMap_.labeledImage.rows * segmentedPlanesMap_.labeledImage.cols);
 
   // Skip label 0. This is the background, i.e. non-planar region.
-  for (int label = 1; label <= numberOfExtractedPlanesWithoutRefinement; ++label) {
+  for (int label = 1; label <= numberOfExtractedPlanesWithoutRefinement; ++label) 
+  {
     computePlaneParametersForLabel(label, pointsWithNormal_);
   }
 }
 
 void SlidingWindowPlaneExtractor::computePlaneParametersForLabel(int label,
-                                                                 std::vector<ransac_plane_extractor::PointWithNormal>& pointsWithNormal) {
+                                                                 std::vector<ransac_plane_extractor::PointWithNormal>& pointsWithNormal) 
+{
   const auto& elevationData = (*map_)[elevationLayer_];
   pointsWithNormal.clear();  // clear the workvector
 
   int numPoints = 0;
   Eigen::Vector3d sum = Eigen::Vector3d::Zero();
   Eigen::Matrix3d sumSquared = Eigen::Matrix3d::Zero();
-  for (int col = 0; col < segmentedPlanesMap_.labeledImage.cols; ++col) {
-    for (int row = 0; row < segmentedPlanesMap_.labeledImage.rows; ++row) {
-      if (segmentedPlanesMap_.labeledImage.at<int>(row, col) == label) {
+  for (int col = 0; col < segmentedPlanesMap_.labeledImage.cols; ++col) 
+  {
+    for (int row = 0; row < segmentedPlanesMap_.labeledImage.rows; ++row) 
+    {
+      if (segmentedPlanesMap_.labeledImage.at<int>(row, col) == label) 
+      {
         double height = elevationData(row, col);
-        if (std::isfinite(height)) {
+        if (std::isfinite(height)) 
+        {
           const Eigen::Vector3d point3d{segmentedPlanesMap_.mapOrigin.x() - row * segmentedPlanesMap_.resolution,
                                         segmentedPlanesMap_.mapOrigin.y() - col * segmentedPlanesMap_.resolution, height};
 
@@ -190,7 +205,8 @@ void SlidingWindowPlaneExtractor::computePlaneParametersForLabel(int label,
       }
     }
   }
-  if (numPoints < parameters_.min_number_points_per_label || numPoints < 3) {
+  if (numPoints < parameters_.min_number_points_per_label || numPoints < 3) 
+  {
     // Label has too little points, no plane parameters are created
     return;
   }

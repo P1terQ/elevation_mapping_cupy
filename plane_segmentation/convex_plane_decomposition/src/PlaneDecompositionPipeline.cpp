@@ -10,17 +10,18 @@ PlaneDecompositionPipeline::PlaneDecompositionPipeline(const Config& config)
       contourExtraction_(config.contourExtractionParameters),
       postprocessing_(config.postprocessingParameters) {}
 
-void PlaneDecompositionPipeline::update(grid_map::GridMap&& gridMap, const std::string& elevationLayer) {
-  // Clear / Overwrite old result
+void PlaneDecompositionPipeline::update(grid_map::GridMap&& gridMap, const std::string& elevationLayer) 
+{
+  //! Clear / Overwrite old result
   planarTerrain_.planarRegions.clear();
   planarTerrain_.gridMap = std::move(gridMap);
 
-  //! 1. preprocess
+  //! 1. preprocess(inpaint & denoise & changeResolution)
   preprocessTimer_.startTimer();
   preprocessing_.preprocess(planarTerrain_.gridMap, elevationLayer);
   preprocessTimer_.endTimer();
 
-  //! 2. sliding window plane extractor
+  //! 2. sliding window plane extractor(runSlidingWindowDetector & runSegmentation & extractPlaneParametersFromLabeledImage(这里应该就有normal vector了吧))
   slidingWindowTimer_.startTimer();
   slidingWindowPlaneExtractor_.runExtraction(planarTerrain_.gridMap, elevationLayer);
   slidingWindowTimer_.endTimer();
@@ -29,6 +30,9 @@ void PlaneDecompositionPipeline::update(grid_map::GridMap&& gridMap, const std::
   contourExtractionTimer_.startTimer();
   planarTerrain_.planarRegions = contourExtraction_.extractPlanarRegions(slidingWindowPlaneExtractor_.getSegmentedPlanesMap());
   contourExtractionTimer_.endTimer();
+
+  //! used to compute surface normal
+  slidingWindowPlaneExtractor_.addSurfaceNormalToMap(planarTerrain_.gridMap, "normal");
 
   //! 4. postprocess
   postprocessTimer_.startTimer();

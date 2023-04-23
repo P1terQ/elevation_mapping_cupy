@@ -13,6 +13,10 @@
 
 #include <convex_plane_decomposition/Timer.h>
 
+#include <grid_map_core/GridMap.hpp>
+#include <grid_map_cv/GridMapCvProcessing.hpp>
+#include <grid_map_ros/GridMapRosConverter.hpp>
+
 namespace convex_plane_decomposition {
 
 // Forward declaration of the pipeline

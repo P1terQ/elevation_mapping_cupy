@@ -12,3 +12,8 @@ start to store this project on github
 # 4-23
 elevation_mapping里的traversibility是用在navigation里的
 调整了plane segmentation里的标准差系数，现在更加稳定了
+
+# 4-24
+今天这边应该没改什么代码,debug的时候在SegmentedPlaneProjection.cpp里改了一下都不对就注释掉了
+
+之后试试用elevation_mapping_raw里的traversibility来做navigation

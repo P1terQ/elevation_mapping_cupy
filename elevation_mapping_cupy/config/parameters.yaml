@@ -66,8 +66,8 @@ plugin_config_file: '$(rospack find elevation_mapping_cupy)/config/plugin_config
 #### Subscribers ########
 
 pointcloud_topics: [
-                    '/d435_Forward/depth/color/points',
-                    # '/d435_Down/depth/color/points',
+                    # '/d435_Forward/depth/color/points',
+                    '/d435_Down/depth/color/points',
                     # '/d435_Left/depth/color/points',
                     # '/d435_Right/depth/color/points',
                     # '/d435_Back/depth/color/points'

@@ -5,8 +5,8 @@ preprocessing:
 
 sliding_window_plane_extractor:
   kernel_size: 3                                        # Size of the sliding window patch used for normal vector calculation and planarity detection. Should be an odd number and at least 3.
-  planarity_opening_filter: 1                           # [#] Apply opening filter (erosion -> dilation) to planarity detection by this amount of pixels DEFAULT:0
-  plane_inclination_threshold_degrees: 10.0             # [deg] Maximum allowed angle between the surface normal and the world-z direction for a patch DEFAULT:30
+  planarity_opening_filter: 0                           # [#] Apply opening filter (erosion -> dilation) to planarity detection by this amount of pixels DEFAULT:0
+  plane_inclination_threshold_degrees: 30.0             # [deg] Maximum allowed angle between the surface normal and the world-z direction for a patch DEFAULT:30
   local_plane_inclination_threshold_degrees: 15.0       # [deg] Maximum allowed angle between the surface normal and the world-z direction for a cell DEFAULT:35
   plane_patch_error_threshold: 0.1                      # [m] The allowed root-mean-squared deviation from the plane fitted to the sliding window. DEFAULT:0.02
   min_number_points_per_label: 4                        # [#] Labels with less points assigned to them are discarded

@@ -251,11 +251,14 @@ void ElevationMappingNode::pointcloudCallback(const sensor_msgs::PointCloud2& cl
   std::string sensorFrameId = cloud.header.frame_id;
   auto timeStamp = cloud.header.stamp;
   Eigen::Affine3d transformationSensorToMap;
-  try {
+  try 
+  {
     transformListener_.waitForTransform(mapFrameId_, sensorFrameId, timeStamp, ros::Duration(1.0));
-    transformListener_.lookupTransform(mapFrameId_, sensorFrameId, timeStamp, transformTf);
+    transformListener_.lookupTransform(mapFrameId_, sensorFrameId, timeStamp, transformTf);   //! 1
     poseTFToEigen(transformTf, transformationSensorToMap);
-  } catch (tf::TransformException& ex) {
+  } 
+  catch (tf::TransformException& ex) 
+  {
     ROS_ERROR("%s", ex.what());
     return;
   }
@@ -288,7 +291,7 @@ void ElevationMappingNode::updatePose(const ros::TimerEvent&) {
   const auto& timeStamp = ros::Time::now();
   try {
     transformListener_.waitForTransform(mapFrameId_, baseFrameId_, timeStamp, ros::Duration(1.0));
-    transformListener_.lookupTransform(mapFrameId_, baseFrameId_, timeStamp, transformTf);
+    transformListener_.lookupTransform(mapFrameId_, baseFrameId_, timeStamp, transformTf);  //!
   } catch (tf::TransformException& ex) {
     ROS_ERROR("%s", ex.what());
     return;

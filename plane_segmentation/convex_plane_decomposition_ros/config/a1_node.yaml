@@ -1,4 +1,4 @@
-# elevation_topic: '/elevation_mapping/elevation_map_raw' '/elevation_mapping/elevation_map_filter'
+# elevation_topic: '/elevation_mapping/elevation_map_raw' 
 # height_layer: 'elevation'
 elevation_topic: '/elevation_mapping/elevation_map_filter'
 height_layer: 'smooth'

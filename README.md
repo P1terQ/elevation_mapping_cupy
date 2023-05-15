@@ -20,3 +20,6 @@ elevation_mapping里的traversibility是用在navigation里的
 
 # 5-7
 目前是一个能用的版本，尝试解决多机通信时出现的TF_ERROR
+
+# 5-15
+按照力哥的意见修改系统时间后,TF_ERROR报错解决了

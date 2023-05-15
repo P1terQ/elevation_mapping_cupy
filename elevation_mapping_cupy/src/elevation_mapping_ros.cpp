@@ -237,15 +237,16 @@ void ElevationMappingNode::pointcloudCallback(const sensor_msgs::PointCloud2& cl
   pcl::PCLPointCloud2 pcl_pc;
   pcl_conversions::toPCL(cloud, pcl_pc);  
 
+  //! 现实中点云比较稀疏，不要下采样
   pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud(new pcl::PointCloud<pcl::PointXYZ>);
   pcl::fromPCLPointCloud2(pcl_pc, *pointCloud); // Convert a PCLPointCloud2 binary data blob into a pcl::PointCloud<T> object.
 
-  //! Add pointCloud DownSampling(加不加差别不大)
-  pcl::VoxelGrid<pcl::PointXYZ> sor;  //! 只需要改这边的类型就可以了
-  sor.setInputCloud(pointCloud);  
-  sor.setLeafSize(0.01f, 0.01f, 0.01f);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-  sor.filter(*pointCloud_filtered); 
+  // //! Add pointCloud DownSampling(加不加差别不大)
+  // pcl::VoxelGrid<pcl::PointXYZ> sor;  //! 只需要改这边的类型就可以了
+  // sor.setInputCloud(pointCloud);  
+  // sor.setLeafSize(0.01f, 0.01f, 0.01f);
+  // pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+  // sor.filter(*pointCloud_filtered); 
 
   tf::StampedTransform transformTf;
   std::string sensorFrameId = cloud.header.frame_id;
@@ -271,8 +272,8 @@ void ElevationMappingNode::pointcloudCallback(const sensor_msgs::PointCloud2& cl
     orientationError = orientationError_;
   }
 
-  // map_.input(pointCloud, transformationSensorToMap.rotation(), transformationSensorToMap.translation(), positionError, orientationError);
-  map_.input(pointCloud_filtered, transformationSensorToMap.rotation(), transformationSensorToMap.translation(), positionError, orientationError);
+  map_.input(pointCloud, transformationSensorToMap.rotation(), transformationSensorToMap.translation(), positionError, orientationError);
+  // map_.input(pointCloud_filtered, transformationSensorToMap.rotation(), transformationSensorToMap.translation(), positionError, orientationError);
 
   if (enableDriftCorrectedTFPublishing_) {
     publishMapToOdom(map_.get_additive_mean_error());

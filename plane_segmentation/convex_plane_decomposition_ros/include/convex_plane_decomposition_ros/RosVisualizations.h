@@ -20,4 +20,13 @@ visualization_msgs::MarkerArray convertBoundariesToRosMarkers(const std::vector<
 visualization_msgs::MarkerArray convertInsetsToRosMarkers(const std::vector<PlanarRegion>& planarRegions, const std::string& frameId,
                                                           grid_map::Time time, double lineWidth);
 
+visualization_msgs::Marker to3dRosMarker_(const CgalPolygon2d& polygon, 
+                                         const Eigen::Isometry3d& transformPlaneToWorld,
+                                         const std_msgs::Header& header, 
+                                         const std_msgs::ColorRGBA& color, 
+                                         int id, 
+                                         double lineWidth);
+
+std_msgs::ColorRGBA getColor_(int id, float alpha);
+
 }  // namespace convex_plane_decomposition

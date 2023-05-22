@@ -1,0 +1,10 @@
+# elevation_topic: '/elevation_mapping/elevation_map_raw' 
+# height_layer: 'elevation'
+elevation_topic: '/elevation_mapping/elevation_map_filter'
+height_layer: 'smooth'
+target_frame_id: 'odom'
+submap:
+  width: 5.0
+  length: 5.0
+publish_to_controller: true
+frequency: 20.0

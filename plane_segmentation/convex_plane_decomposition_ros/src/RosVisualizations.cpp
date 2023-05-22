@@ -33,6 +33,70 @@ std::vector<geometry_msgs::PolygonStamped> to3dRosPolygon(const CgalPolygonWithH
   return polygons;
 }
 
+visualization_msgs::Marker to3dRosMarker_(const CgalPolygon2d& polygon, 
+                                         const Eigen::Isometry3d& transformPlaneToWorld,
+                                         const std_msgs::Header& header, 
+                                         const std_msgs::ColorRGBA& color, 
+                                         int id, 
+                                         double lineWidth) 
+{
+  visualization_msgs::Marker line;
+  line.id = id;
+  line.header = header;
+  line.type = visualization_msgs::Marker::LINE_STRIP;
+  line.scale.x = lineWidth;
+  line.color = color;
+  if (!polygon.is_empty()) {
+    line.points.reserve(polygon.size() + 1);
+    for (const auto& point : polygon) {
+      const auto pointInWorld = positionInWorldFrameFromPosition2dInPlane(point, transformPlaneToWorld);
+      geometry_msgs::Point point_ros;
+      point_ros.x = pointInWorld.x();
+      point_ros.y = pointInWorld.y();
+      point_ros.z = pointInWorld.z();
+      line.points.push_back(point_ros);
+    }
+    // repeat the first point to close to polygon
+    const auto pointInWorld = positionInWorldFrameFromPosition2dInPlane(polygon.vertex(0), transformPlaneToWorld);
+    geometry_msgs::Point point_ros;
+    point_ros.x = pointInWorld.x();
+    point_ros.y = pointInWorld.y();
+    point_ros.z = pointInWorld.z();
+    line.points.push_back(point_ros);
+  }
+  line.pose.orientation.w = 1.0;
+  line.pose.orientation.x = 0.0;
+  line.pose.orientation.y = 0.0;
+  line.pose.orientation.z = 0.0;
+  return line;
+}
+
+std_msgs::ColorRGBA getColor_(int id, float alpha) 
+{
+  constexpr int numColors = 7;
+  using RGB = std::array<float, 3>;
+  // clang-format off
+  static const std::array<std::array<float, 3>, numColors> colorMap
+  {  
+    RGB{0.0000F, 0.4470F, 0.7410F}, // 蓝色
+    RGB{0.8500F, 0.3250F, 0.0980F}, // 橙色
+    RGB{0.9290F, 0.6940F, 0.1250F}, // 黄色
+    RGB{0.4940F, 0.1840F, 0.5560F}, // 紫色
+    RGB{0.4660F, 0.6740F, 0.1880F},
+    RGB{0.6350F, 0.0780F, 0.1840F},
+    RGB{0.2500F, 0.2500F, 0.2500F}
+  };
+  // clang-format on
+
+  std_msgs::ColorRGBA colorMsg;
+  const auto& rgb = colorMap[id % numColors];
+  colorMsg.r = rgb[0];
+  colorMsg.g = rgb[1];
+  colorMsg.b = rgb[2];
+  colorMsg.a = alpha;
+  return colorMsg;
+}
+
 namespace {  // Helper functions for convertBoundariesToRosMarkers and convertInsetsToRosMarkers
 std_msgs::ColorRGBA getColor(int id, float alpha = 1.0) {
   constexpr int numColors = 7;
